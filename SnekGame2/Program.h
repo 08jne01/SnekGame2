@@ -2,9 +2,12 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <memory>
-
+#include "NetworkHandler.h"
 #include "Player.h"
-#include "Entity.h"
+#include "Ghost.h"
+
+
+class Player;
 
 class Program
 
@@ -19,21 +22,34 @@ class Program
 
 public:
 	Program(const short& width, const short& height);
-	~Program();
 	int mainLoop();
 	void draw();
 	void update();
 	void reset(); //Reset all variables required to go into any other game state
 	void getSteering();
 	void eventHandler(const sf::Event& events);
+	void eventHandlerLoop();
 
+	short getGhostIndex(const std::string& id);
+	void createGhost(const unsigned char& r, const unsigned char& g, const unsigned char& b, const std::string& id, const std::string& name, const bool& first);
+	void updateGhostActualPosition(const std::string& id, const Vec2f& position, const float& size, const bool& allowedPoints);
+	void addGhostPoint(const std::string& id, const Vec2f& position, const float& size, const unsigned char& type);
+	void removeGhost(const std::string& id);
+	void clearGhost(const std::string& id);
 private:
 	std::vector<Entity*> m_entities;
 	const short m_width, m_height;
 	bool shouldQuit = false;
 	sf::Mutex m_mtx;
-	sf::RenderWindow window;
+	sf::Mutex m_mtxEvents;
 
-	Player m_player;
+	sf::Thread m_eventHandlerThread;
+
+	sf::RenderWindow window;
+	sf::Context context;
+	Player* m_player;
+	std::vector<std::shared_ptr<Ghost>>* m_ghosts;
+	std::list<sf::Event> m_eventQueue;
+
 	QuadTree m_tree;
 };

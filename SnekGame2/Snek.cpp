@@ -1,6 +1,12 @@
 #include "Snek.h"
 #define PI 3.14159
-Snek::Snek(QuadTree& tree): m_tree(tree), m_drawPosition(0)
+Snek::Snek(
+	QuadTree* tree,
+	const Type type
+): 
+	m_tree(tree),
+	m_drawPosition(0),
+	m_type(type)
 
 {
 	m_drawPoints.setPrimitiveType(sf::Quads);
@@ -9,10 +15,14 @@ Snek::Snek(QuadTree& tree): m_tree(tree), m_drawPosition(0)
 void Snek::preUpdate()
 
 {
-	for (int i = 0; i < points.size() - 10 && points.size() >= 10; i++)
+	short offset = 0;
+	if (m_type == Type::Player)
+		offset = 10;
+
+	for (int i = 0; i < points.size() - offset && points.size() >= offset; i++)
 
 	{
-		m_tree.insert(points[i]);
+		m_tree->insert(points[i]);
 	}
 }
 
@@ -20,10 +30,11 @@ void Snek::draw(sf::RenderWindow& window)
 
 {
 	sf::CircleShape circle(5);
-	circle.setFillColor(sf::Color::Green);
+	circle.setFillColor(m_color);
 	m_drawPoints.clear();
 	Vec2f tl, bl;
 	Vec2f horizontal = Vec2f(-1, 0);
+	bool wait = false;
 
 	for (int i = 0; i < points.size(); i++)
 
@@ -49,7 +60,7 @@ void Snek::draw(sf::RenderWindow& window)
 				tr += prev;
 				br += prev;
 
-				if (i == 1)
+				if (i == 1 || wait)
 
 				{
 					tl = Vec2f(0, -r);
@@ -67,24 +78,30 @@ void Snek::draw(sf::RenderWindow& window)
 
 				tl = tr;
 				bl = br;
+				wait = false;
 			}
 
 			else
 
 			{
-				circle.setRadius(points[i].m_radius);
-				circle.setOrigin(circle.getGlobalBounds().width / 2.0, circle.getGlobalBounds().height / 2.0);
-				circle.setPosition(pos.x, pos.y);
-				window.draw(circle);
+				if (points.size() > 1)
 
-				circle.setRadius(points[i-1].m_radius);
-				circle.setOrigin(circle.getGlobalBounds().width / 2.0, circle.getGlobalBounds().height / 2.0);
-				circle.setPosition(prev.x, prev.y);
-				window.draw(circle);
+				{
+					wait = true;
+					circle.setRadius(points[i].m_radius);
+					circle.setOrigin(circle.getGlobalBounds().width / 2.0, circle.getGlobalBounds().height / 2.0);
+					circle.setPosition(pos.x, pos.y);
+					window.draw(circle);
+
+					circle.setRadius(points[i - 1].m_radius);
+					circle.setOrigin(circle.getGlobalBounds().width / 2.0, circle.getGlobalBounds().height / 2.0);
+					circle.setPosition(prev.x, prev.y);
+					window.draw(circle);
+				}
 			}
 		}
 
-		if (i == points.size() - 1 || i == 0)
+		if (i == points.size() - 1 || i == 0 && points.size() > 0)
 
 		{
 			circle.setRadius(points[i].m_radius);
@@ -107,8 +124,9 @@ void Snek::draw(sf::RenderWindow& window)
 	}
 }
 
-QuadTree& Snek::getTree()
+QuadTree* Snek::getTree()
 
 {
 	return m_tree;
 }
+

@@ -2,15 +2,36 @@
 
 Player::Player(
 	const Vec2f& position,
-	QuadTree& tree
+	QuadTree* tree,
+	short width,
+	short height
 ) :
-	Snek(tree),
+	Snek(tree, Type::Player),
 	m_position(position),
 	m_prevPosition(0),
-	m_velocity(2,0)
+	m_velocity(2,0),
+	generator(clock()),
+	m_width(width),
+	m_height(height)
 
 {
+	reset();
+}
 
+void Player::reset()
+
+{
+	points.clear();
+	m_alive = true;
+	std::uniform_int_distribution<int> distribution(0, 360);
+
+	float angle = PI * (float)distribution(generator) / 180.0;
+	float distance = 400;
+	m_position.x = distance * cos(angle) + 500;
+	m_position.y = distance * sin(angle) + 500;
+
+	Vec2f direction = normalize(Vec2f(500, 500) - m_position);
+	m_velocity = direction * 2.0;
 }
 
 void Player::update()
@@ -24,13 +45,42 @@ void Player::update()
 	steer();
 	m_position += m_velocity;
 
-	if (distanceSquared(m_position, m_prevPosition) > m_spacingSqrd)
+	NetworkHandler::getInstance()->sendPos(m_position, m_velocity, m_allowedPoints, m_size);
+
+	if (distanceSquared(m_position, m_prevPosition) > m_spacingSqrd && m_allowedPoints)
 
 	{
 		points.push_back(Point(m_position, m_size, Point::PointType::Snek));
 		m_prevPosition = m_position;
 	}
 
+	if (m_spacer.getElapsedTime().asSeconds() > m_randomTime)
+
+	{
+		m_spacer.restart();
+		m_distHoles = 0.0;
+		m_randomTime = randomf(0.6, 1.6);
+		m_randomDistance = randomi(3 * m_size + 9, 3 * m_size + 25);
+	}
+
+	if (m_distHoles < m_randomDistance)
+
+	{
+		m_spacer.restart();
+		m_allowedPoints = false;
+	}
+
+	else
+
+	{
+		m_allowedPoints = true;
+	}
+
+	m_distHoles += distance(m_position, m_prevPositionIncludingHoles);
+
+	if (m_distHoles)
+
+	m_prevPositionIncludingHoles = m_position;
 	m_drawPosition = m_position;
 }
 
@@ -38,7 +88,7 @@ void Player::checkCollision()
 
 {
 	std::vector<Point> output;
-	getTree().query(output, Boundary(m_position, m_size));
+	getTree()->query(output, Boundary(m_position, m_size));
 	//std::cout << output.size() << std::endl;
 	for (int i = 0; i < output.size(); i++)
 
@@ -70,5 +120,5 @@ inline void Player::steer()
 
 {
 	m_velocity.rotateInPlace(m_steering * m_steerVelocity);
-	m_velocity.limit(m_speed);
+	m_velocity.setMagnitude(2.0);
 }
