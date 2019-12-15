@@ -15,7 +15,7 @@ Program::Program(
 int Program::mainLoop()
  
 {
-	Player player = Player(Vec2f(m_width / 2.0, m_height / 2.0), &m_tree);
+	Player player = Player(Vec2f(m_width / 2.0, m_height / 2.0), &m_tree, m_width, m_height);
 	m_player = &player;
 	m_entities.push_back(m_player);
 

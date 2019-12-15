@@ -87,6 +87,13 @@ void Player::update()
 void Player::checkCollision()
 
 {
+	if (!(m_position.x >= 0 && m_position.x < m_width && m_position.y >= 0 && m_position.y < m_height))
+
+	{
+		m_alive = false;
+		return;
+	}
+
 	std::vector<Point> output;
 	getTree()->query(output, Boundary(m_position, m_size));
 	//std::cout << output.size() << std::endl;

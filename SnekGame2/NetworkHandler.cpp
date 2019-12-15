@@ -29,15 +29,29 @@ bool NetworkHandler::connect(const std::string& ip, const unsigned short& port, 
 	m_port = port;
 	m_name = name;
 
-	std::cout << "Connecting..." << std::endl;
-	if (!m_tcpSocket.connect(m_ip, m_port, sf::seconds(20)))
-		std::cout << "Connected to TCP on " << m_ip << ":" << m_port << std::endl;
-	else
+	bool connected = false;
+	short tries = 0;
+
+	while (!connected && tries < 5)
 
 	{
-		std::cout << "Error connection timed out!" << std::endl;
-		return false;
+		std::cout << "Connecting..." << std::endl;
+		if (!m_tcpSocket.connect(m_ip, m_port, sf::seconds(5)))
+
+		{
+			std::cout << "Connected to TCP on " << m_ip << ":" << m_port << std::endl;
+			connected = true;
+		}
+
+		else
+
+		{
+			std::cout << "Error connection timed out!" << std::endl;
+		}
 	}
+
+	if (!connected)
+		return false;
 		
 
 	bindUDPSocket(m_port);
