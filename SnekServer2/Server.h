@@ -10,6 +10,7 @@ class Server
 {
 public:
 	Server(const unsigned short& serverPort);
+	~Server();
 	int mainLoop();
 
 	//Setup
@@ -37,12 +38,16 @@ public:
 	inline void tcpSocketReady(short& index); 
 	inline void disconnectClient(const short& index);
 
+	void clientConnected();
+
 private:
 	std::vector<Client> m_clients;
-
+	std::vector<std::shared_ptr<sf::Thread>> m_connectingThreads;
 	sf::SocketSelector m_selector;
 	sf::TcpListener m_listener;
 	sf::UdpSocket m_udpSocket;
+
+	sf::Mutex m_mtx;
 
 	bool m_running = true;
 	const unsigned short m_serverPort;

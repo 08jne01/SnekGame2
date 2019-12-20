@@ -7,7 +7,10 @@ Program::Program(
 	m_width(width),
 	m_height(height),
 	m_tree(Vec2f(width / 2.0, height / 2.0), width, height, 1),
-	m_eventHandlerThread(&Program::eventHandlerLoop, this)
+	m_eventHandlerThread(&Program::eventHandlerLoop, this),
+	m_gameState(GameState::MENU),
+	m_ip("127.0.0.1"),
+	m_port(5000)
 {
 	
 }
@@ -15,34 +18,80 @@ Program::Program(
 int Program::mainLoop()
  
 {
-	Player player = Player(Vec2f(m_width / 2.0, m_height / 2.0), &m_tree, m_width, m_height);
-	m_player = &player;
-	m_entities.push_back(m_player);
+	
+	int error = 0;
+	while (!shouldQuit && !error)
 
-	std::vector<std::shared_ptr<Ghost>> ghosts;
-	m_ghosts = &ghosts;
-
-	NetworkHandler networkHandler(m_mtx, this);
-	networkHandler.connect("127.0.0.1", 5000);
+	{
+		if (m_gameState == GameState::MENU)
+			error = mainLoopMenu();
+		else
+			error = mainLoopGame();
+	}
 
 	
 
 	//std::cout << NetworkHandler::getInstance() << " " << &networkHandler << std::endl;
-
+	//window.setActive(true);
+	//if (!window.isOpen())
+		//return EXIT_FAILURE;
+	/*m_gameState = GameState::MENU;
+	mainLoopMenu();
+	m_gameState = GameState::MULTI;
+	std::cout << "Sleep 5" << std::endl;
+	sf::sleep(sf::seconds(5));
+	mainLoopGame();*/
 	
+	//Hacky way around a dumb crash caused by SFML deleting our window twice.
+	window.create(sf::VideoMode(0, 0), "");
+	return error;
+}
 
-	sf::Event events;
-	sf::Clock updateClock;
+int Program::mainLoopMenu()
 
-	float updateTime = 1.0 / 60.0;
-
+{
+	std::string line;
+	//std::cout << "Snek Game Console> ";
+	//std::getline(std::cin, line);
 	
+	while (m_gameState == GameState::MENU && !shouldQuit)
+
+	{
+		std::cout << "Snek Game Console> ";
+		std::cin.clear();
+		std::getline(std::cin, line);
+		executeArguments(line);
+	}
+	
+	return EXIT_SUCCESS;
+}
+
+int Program::mainLoopGame()
+
+{
+	static Player player = Player(Vec2f(m_width / 2.0, m_height / 2.0), &m_tree, m_width, m_height);
+	m_player = &player;
+	m_player->reset();
+	m_entities.push_back(m_player);
+
+	static std::vector<std::shared_ptr<Ghost>> ghosts;
+	m_ghosts = &ghosts;
+
+
+	static sf::Event events;
+	static sf::Clock updateClock;
+	static float updateTime = 1.0 / 60.0;
+
+	static NetworkHandler networkHandler(m_mtx, this);
+	GameState stateWhenStarted = m_gameState;
+	if (m_gameState == GameState::MULTI)
+		networkHandler.connect(m_ip, m_port);
+
 	m_eventHandlerThread.launch();
 	sf::sleep(sf::seconds(1));
-	//window.setActive(true);
-	if (!window.isOpen())
-		return EXIT_FAILURE;
-	while (window.isOpen())
+	window.requestFocus();
+
+	while (m_gameState != GameState::MENU)
 
 	{
 		//window.pollEvent(events);
@@ -59,13 +108,30 @@ int Program::mainLoop()
 		draw();
 		window.display();
 	}
-	networkHandler.disconnect();
-	m_eventHandlerThread.wait();
-	
-	//Hacky way around a dumb crash caused by SFML deleting our window twice.
-	window.create(sf::VideoMode(0, 0), "");
 
+	if (stateWhenStarted == GameState::MULTI)
+
+	{
+		NetworkHandler::getInstance()->disconnect();
+		NetworkHandler::getInstance()->reset();
+	}
+		
+	m_eventHandlerThread.wait();
+	gameCleanUp();
 	return EXIT_SUCCESS;
+}
+
+void Program::gameCleanUp()
+
+{
+	m_mtx.lock();
+	m_entities.clear();
+	m_ghosts->clear();
+	m_eventQueue.clear();
+	m_player->points.clear();
+	m_tree.clear();
+	
+	m_mtx.unlock();
 }
 
 void Program::draw()
@@ -101,6 +167,76 @@ void Program::update()
 		m_entities[i]->update();
 	}
 	m_mtx.unlock();
+}
+
+void Program::executeArguments(const std::string& line)
+
+{
+	std::vector<std::string> argv;
+	for (int i = 0; i < argv.size(); i++)
+
+	{
+		std::cout << argv[i] << std::endl;
+	}
+
+	collectArguments(argv, line);
+	parseArguments(argv);
+}
+
+void Program::collectArguments(std::vector<std::string>& argv, const std::string& line)
+
+{
+	std::string word = "";
+	std::string linePlusNewline = line + '\n';
+	for (int i = 0; i < linePlusNewline.size(); i++)
+
+	{
+		char c = linePlusNewline[i];
+		if (c == ' ' || c == '\n')
+
+		{
+			if (word != "")
+
+			{
+				argv.push_back(word);
+				word = "";
+			}
+				
+		}
+
+		else
+			word += c;
+	}
+}
+
+void Program::parseArguments(const std::vector<std::string>& argv)
+
+{
+	if (!argv.size())
+		return;
+
+	short size = argv.size();
+
+	if (argv[0] == "launch")
+
+	{
+		if (size > 1 && (argv[1] == "multiplayer" || argv[1] == "m"))
+			m_gameState = GameState::MULTI;
+		else if (size > 1 && (argv[1] == "singleplayer" || argv[1] == "s"))
+			m_gameState = GameState::SINGLE;
+	}
+
+	else if (argv[0] == "quit")
+		shouldQuit = true;
+	else if (argv[0] == "help")
+
+	{
+		std::cout << "launch <mode> - (singleplayer alias s or multiplayer alias m)" << std::endl;
+		std::cout << "quit - quits the program" << std::endl;
+		std::cout << "help - brings up this menu" << std::endl;
+	}
+	else
+		std::cout << "Unknown command -> help for possible commands" << std::endl;
 }
 
 void Program::getSteering()
@@ -227,6 +363,7 @@ void Program::eventHandler(const sf::Event& events)
 	{
 		m_mtx.lock();
 		window.close();
+		m_gameState = GameState::MENU;
 		m_mtx.unlock();
 	}
 

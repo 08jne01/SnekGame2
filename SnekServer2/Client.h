@@ -3,11 +3,16 @@
 #include <list>
 #include <SFML/Network.hpp>
 #include "DroppedPacket.h"
+#include "Server.h"
+
+class Server;
+
 class Client
 
 {
 public:
 	Client() {}
+
 	Client(
 		const sf::IpAddress& ip,
 		const unsigned short& port,
@@ -37,7 +42,7 @@ public:
 	//TCP details
 	std::shared_ptr<sf::TcpSocket> m_tcpSocket;
 	unsigned short m_tcpPort;
-	
+	bool m_udpConnected = false;
 	//Dropped Packets
 	std::list<DroppedPacket> m_dropped;
 

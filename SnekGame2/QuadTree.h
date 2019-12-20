@@ -190,7 +190,7 @@ class QuadTreeObj
 
 {
 public:
-	QuadTreeObj(const Boundary boundary, const short capacity);
+	QuadTreeObj(const Boundary boundary, const short capacity, const short level);
 	~QuadTreeObj();
 	void subDivide();
 	void insert(const Point& point);
@@ -206,6 +206,7 @@ private:
 	const Boundary m_boundary;
 	std::vector<Point> points;
 	bool divided = false;
+	short m_level = 0;
 };
 
 class QuadTree

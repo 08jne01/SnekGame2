@@ -40,10 +40,12 @@ void Player::update()
 	if (!m_alive)
 		return;
 
+	float dt = 60.0*frameTime.getElapsedTime().asSeconds();
+	frameTime.restart();
 	checkCollision();
 
 	steer();
-	m_position += m_velocity;
+	m_position += m_velocity*dt;
 
 	NetworkHandler::getInstance()->sendPos(m_position, m_velocity, m_allowedPoints, m_size);
 

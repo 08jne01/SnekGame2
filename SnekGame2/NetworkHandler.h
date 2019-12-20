@@ -28,6 +28,7 @@ public:
 	//Setup
 	bool connect(const std::string& ip, const unsigned short& port, const std::string& name = "Unamed Sad Sneky Boi");
 	void bindUDPSocket(const unsigned short& port);
+	void reset();
 	//Cleanup
 	void disconnect();
 	//Send
@@ -69,8 +70,8 @@ private:
 	sf::TcpSocket m_tcpSocket;
 
 	//Thread Info
-	sf::Thread m_receiveThreadTCP;
-	sf::Thread m_receiveThreadUDP;
+	std::shared_ptr<sf::Thread> m_receiveThreadTCP;
+	std::shared_ptr<sf::Thread> m_receiveThreadUDP;
 	sf::Mutex m_mtxTCP;
 	sf::Mutex m_mtxUDP;
 	sf::Mutex& mtx; //Mutex for the whole program

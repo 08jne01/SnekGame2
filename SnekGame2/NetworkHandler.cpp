@@ -7,9 +7,7 @@ NetworkHandler::NetworkHandler(
 	Program* ptr
 ):
 	mtx(mtx_),
-	program(ptr),
-	m_receiveThreadTCP(&NetworkHandler::receiveTCP, this),
-	m_receiveThreadUDP(&NetworkHandler::receiveUDP, this)
+	program(ptr)
 {
 	if (!m_instance)
 		m_instance = this;
@@ -18,8 +16,8 @@ NetworkHandler::NetworkHandler(
 NetworkHandler::~NetworkHandler()
 
 {
-	m_receiveThreadTCP.wait();
-	m_receiveThreadUDP.wait();
+	//m_receiveThreadTCP->wait();
+	//m_receiveThreadUDP->wait();
 }
 
 bool NetworkHandler::connect(const std::string& ip, const unsigned short& port, const std::string& name)
@@ -75,7 +73,6 @@ bool NetworkHandler::connect(const std::string& ip, const unsigned short& port, 
 			gotID = true;
 		}
 	}
-
 	if (!gotID)
 
 	{
@@ -85,10 +82,24 @@ bool NetworkHandler::connect(const std::string& ip, const unsigned short& port, 
 
 	sendCreate();
 	m_connected = true;
-	m_receiveThreadTCP.launch();
-	m_receiveThreadUDP.launch();
+
+
+	m_receiveThreadTCP = std::shared_ptr<sf::Thread>(new sf::Thread(&NetworkHandler::receiveTCP, this));
+	m_receiveThreadUDP = std::shared_ptr<sf::Thread>(new sf::Thread(&NetworkHandler::receiveUDP, this));
+
+	m_receiveThreadTCP->launch();
+	m_receiveThreadUDP->launch();
 
 	return true;
+}
+
+void NetworkHandler::reset()
+
+{
+	m_quitTCP = false;
+	m_quitUDP = false;
+	m_connected = false;
+	m_droppedPackets.clear();
 }
 
 void NetworkHandler::bindUDPSocket(const unsigned short& port)
@@ -142,6 +153,8 @@ void NetworkHandler::receiveTCP()
 			case MCLR:
 				handleClear(packetReceive);
 				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -171,6 +184,8 @@ void NetworkHandler::receiveUDP()
 				break;
 			case NPNT:
 				//handleNewPointUDP(packetReceive);
+				break;
+			default:
 				break;
 			}
 		}
@@ -322,4 +337,7 @@ void NetworkHandler::disconnect()
 	m_mtxTCP.lock();
 	m_tcpSocket.disconnect();
 	m_mtxTCP.unlock();
+
+	m_receiveThreadTCP->wait();
+	m_receiveThreadUDP->wait();
 }

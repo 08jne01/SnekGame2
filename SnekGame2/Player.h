@@ -27,7 +27,7 @@ private:
 	float m_randomDistance = 0.0;
 	float m_randomTime = 0.0;
 	sf::Clock m_spacer;
-
+	sf::Clock frameTime;
 	//Constant config values
 	const float m_steerVelocity = 0.1;
 	const float m_speed = 2.0;

@@ -2,10 +2,12 @@
 
 QuadTreeObj::QuadTreeObj(
 	const Boundary boundary,
-	const short capacity
+	const short capacity,
+	const short level
 ):
 	m_boundary(boundary),
-	m_capacity(capacity)
+	m_capacity(capacity),
+	m_level(level)
 {
 
 }
@@ -41,10 +43,10 @@ void QuadTreeObj::subDivide()
 	Boundary sw = Boundary(Vec2f(x - w4, y + h4), w2, h2);
 	Boundary se = Boundary(Vec2f(x + w4, y + h4), w2, h2);
 
-	m_northwest = new QuadTreeObj(nw, m_capacity);
-	m_northeast = new QuadTreeObj(ne, m_capacity);
-	m_southwest = new QuadTreeObj(sw, m_capacity);
-	m_southeast = new QuadTreeObj(se, m_capacity);
+	m_northwest = new QuadTreeObj(nw, m_capacity, m_level+1);
+	m_northeast = new QuadTreeObj(ne, m_capacity, m_level + 1);
+	m_southwest = new QuadTreeObj(sw, m_capacity, m_level + 1);
+	m_southeast = new QuadTreeObj(se, m_capacity, m_level + 1);
 
 	for (int i = 0; i < points.size(); i++)
 
@@ -61,7 +63,7 @@ void QuadTreeObj::subDivide()
 void QuadTreeObj::insert(const Point& point)
 
 {
-	if (!m_boundary.contains(point))
+	if (!m_boundary.contains(point) || m_level > 100)
 		return;
 
 	if (!divided)
@@ -86,7 +88,7 @@ void QuadTreeObj::insert(const Point& point)
 void QuadTreeObj::query(std::vector<Point>& output, const Boundary& range)
 
 {
-	if (!m_boundary.intersects(range))
+	if (!m_boundary.intersects(range) || m_level > 100)
 		return;
 	else if (!divided)
 
@@ -121,7 +123,7 @@ QuadTree::QuadTree(
 	m_capacity(capacity)
 
 {
-	m_tree = new QuadTreeObj(Boundary(position, width, height), capacity);
+	m_tree = new QuadTreeObj(Boundary(position, width, height), capacity, 0);
 }
 
 QuadTree::~QuadTree()
@@ -156,7 +158,7 @@ void QuadTree::clear()
 		
 
 	if (!m_tree)
-		m_tree = new QuadTreeObj(Boundary(m_rootPosition, m_width, m_height), m_capacity);
+		m_tree = new QuadTreeObj(Boundary(m_rootPosition, m_width, m_height), m_capacity, 0);
 }
 
 

@@ -9,6 +9,16 @@ Server::Server(
 
 }
 
+Server::~Server()
+
+{
+	for (int i = 0; i < m_connectingThreads.size(); i++)
+
+	{
+		m_connectingThreads[i]->wait();
+	}
+}
+
 int Server::mainLoop()
 
 {
@@ -47,6 +57,16 @@ int Server::mainLoop()
 
 			sendDroppedPackets();
 		}
+
+		for (int i = 0; i < m_clients.size(); i++)
+
+		{
+			if (!m_clients[i].m_udpConnected)
+
+			{
+				
+			}
+		}
 	}
 	return EXIT_SUCCESS;
 }
@@ -70,11 +90,12 @@ inline void Server::listenerReady()
 			m_clients.back().m_ip << ":" << m_clients.back().m_tcpPort << std::endl;
 
 		std::cout << m_clients.size() << " client(s) connected" << std::endl;
-
 		sf::Packet sendPacket;
 		MessagePacket msg(MYID);
 		sendPacket << msg << m_clients.back().m_id;
 		broadcastTCP(sendPacket, m_clients.size() - 1, true);
+		m_connectingThreads.push_back(std::shared_ptr<sf::Thread>(new sf::Thread(&Server::clientConnected, this)));
+		m_connectingThreads.back()->launch();
 	}
 
 	else
@@ -138,6 +159,32 @@ inline void Server::udpSocketReady()
 	}
 }
 
+void Server::clientConnected()
+
+{
+	if (!m_clients.size())
+		return;
+
+	const std::string id = m_clients.back().m_id;
+	short index = getClientFromID(id);
+	short count = 0;
+
+	while (!m_clients[index].m_udpConnected && index != -1 && count < 20)
+
+	{
+		index = getClientFromID(id);
+		sf::Packet sendPacket;
+		MessagePacket msg(MYID);
+		sendPacket << msg << m_clients[index].m_id;
+		broadcastTCP(sendPacket, index, true);
+		count++;
+		sf::sleep(sf::seconds(0.25));
+	}
+
+	if (count >= 20)
+		disconnectClient(index);
+}
+
 void Server::setUDPClientInfoFromID(const sf::IpAddress& ip, const unsigned short& port, const std::string& id)
 
 {
@@ -148,6 +195,7 @@ void Server::setUDPClientInfoFromID(const sf::IpAddress& ip, const unsigned shor
 
 		{
 			m_clients[i].m_udpPort = port;
+			m_clients[i].m_udpConnected = true;
 			std::cout << "(Server) <- (Client " << id << ") : connected on UDP" << std::endl << std::endl;
 			return;
 		}
