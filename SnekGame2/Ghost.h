@@ -1,4 +1,5 @@
 #pragma once
+#include <list>
 #include "Snek.h"
 class Ghost : public Snek
 
@@ -34,6 +35,7 @@ public:
 private:
 	std::string m_ID, m_name;
 	Vec2f m_position, m_prevPosition;
+	std::list<Point> m_prevPoints;
 	bool m_allowedPoints = true;
 	float m_size = 3;
 	float m_spacingSqrd = 16.0;

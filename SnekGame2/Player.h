@@ -29,7 +29,7 @@ private:
 	sf::Clock m_spacer;
 	sf::Clock frameTime;
 	//Constant config values
-	const float m_steerVelocity = 0.1;
+	const float m_steerVelocity = 0.08;
 	const float m_speed = 2.0;
 	const float m_spacingSqrd = 16.0;
 
@@ -38,6 +38,10 @@ private:
 	bool m_allowedPoints = true;
 	bool m_alive = true;
 	short m_width, m_height;
+
+	//Snek Attributes
+	bool m_noGaps = false;
+
 	//Random Number gen
 	std::mt19937 generator;
 };

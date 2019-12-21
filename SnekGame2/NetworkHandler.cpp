@@ -30,7 +30,7 @@ bool NetworkHandler::connect(const std::string& ip, const unsigned short& port, 
 	bool connected = false;
 	short tries = 0;
 
-	while (!connected && tries < 5)
+	while (!connected && tries < 2)
 
 	{
 		std::cout << "Connecting..." << std::endl;
@@ -46,6 +46,7 @@ bool NetworkHandler::connect(const std::string& ip, const unsigned short& port, 
 		{
 			std::cout << "Error connection timed out!" << std::endl;
 		}
+		tries++;
 	}
 
 	if (!connected)

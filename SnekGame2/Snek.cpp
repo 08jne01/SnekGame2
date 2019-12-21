@@ -15,15 +15,28 @@ Snek::Snek(
 void Snek::preUpdate()
 
 {
-	short offset = 0;
-	if (m_type == Type::Player)
-		offset = 10;
 
-	for (int i = 0; i < points.size() - offset && points.size() >= offset; i++)
+	if (m_type == Type::Player)
 
 	{
-		m_tree->insert(points[i]);
+		for (int i = 0; i < points.size() - 10 && points.size() > 10; i++)
+
+		{
+			m_tree->insert(points[i]);
+		}
 	}
+
+	else
+
+	{
+		for (int i = 0; i < points.size(); i++)
+
+		{
+			m_tree->insert(points[i]);
+		}
+	}
+
+	
 }
 
 void Snek::draw(sf::RenderWindow& window)

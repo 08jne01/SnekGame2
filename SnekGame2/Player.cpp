@@ -49,7 +49,7 @@ void Player::update()
 
 	NetworkHandler::getInstance()->sendPos(m_position, m_velocity, m_allowedPoints, m_size);
 
-	if (distanceSquared(m_position, m_prevPosition) > m_spacingSqrd && m_allowedPoints)
+	if (distanceSquared(m_position, m_prevPosition) > m_spacingSqrd && m_allowedPoints || m_noGaps)
 
 	{
 		points.push_back(Point(m_position, m_size, Point::PointType::Snek));

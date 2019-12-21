@@ -85,7 +85,19 @@ int Program::mainLoopGame()
 	static NetworkHandler networkHandler(m_mtx, this);
 	GameState stateWhenStarted = m_gameState;
 	if (m_gameState == GameState::MULTI)
-		networkHandler.connect(m_ip, m_port);
+
+	{
+		if (!networkHandler.connect(m_ip, m_port))
+
+		{
+			m_gameState = GameState::MENU;
+			gameCleanUp();
+			return EXIT_SUCCESS;
+		}
+			
+	}
+		
+
 
 	m_eventHandlerThread.launch();
 	sf::sleep(sf::seconds(1));
@@ -221,7 +233,44 @@ void Program::parseArguments(const std::vector<std::string>& argv)
 
 	{
 		if (size > 1 && (argv[1] == "multiplayer" || argv[1] == "m"))
+
+		{
+			if (size != 3)
+
+			{
+				std::cout << "Please supply ip:port" << std::endl;
+				return;
+			}
+
 			m_gameState = GameState::MULTI;
+			std::string ipport = argv[2];
+			bool isPort = false;
+			std::string ip;
+			std::string port;
+			for (int i = 0; i < ipport.size(); i++)
+
+			{
+				char c = ipport[i];
+				if (c == ':')
+					isPort = true;
+				else
+
+				{
+					if (isPort)
+						port += c;
+					else
+						ip += c;
+				}
+			}
+
+			std::stringstream os;
+			os << port;
+			short numPort;
+			os >> numPort;
+			m_ip = ip;
+			m_port = numPort;
+		}
+			
 		else if (size > 1 && (argv[1] == "singleplayer" || argv[1] == "s"))
 			m_gameState = GameState::SINGLE;
 	}
@@ -231,7 +280,7 @@ void Program::parseArguments(const std::vector<std::string>& argv)
 	else if (argv[0] == "help")
 
 	{
-		std::cout << "launch <mode> - (singleplayer alias s or multiplayer alias m)" << std::endl;
+		std::cout << "launch <mode> (ip:port) - (singleplayer alias s or multiplayer alias m)" << std::endl;
 		std::cout << "quit - quits the program" << std::endl;
 		std::cout << "help - brings up this menu" << std::endl;
 	}
