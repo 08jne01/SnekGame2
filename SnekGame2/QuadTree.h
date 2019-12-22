@@ -33,7 +33,7 @@ struct Point
 	float m_radius;
 	PointType m_type;
 };
-
+//TODO make rectangle work
 class Boundary
 
 {

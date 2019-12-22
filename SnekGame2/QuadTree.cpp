@@ -43,10 +43,28 @@ void QuadTreeObj::subDivide()
 	Boundary sw = Boundary(Vec2f(x - w4, y + h4), w2, h2);
 	Boundary se = Boundary(Vec2f(x + w4, y + h4), w2, h2);
 
-	m_northwest = new QuadTreeObj(nw, m_capacity, m_level+1);
-	m_northeast = new QuadTreeObj(ne, m_capacity, m_level + 1);
-	m_southwest = new QuadTreeObj(sw, m_capacity, m_level + 1);
-	m_southeast = new QuadTreeObj(se, m_capacity, m_level + 1);
+	try
+
+	{
+		m_northwest = new QuadTreeObj(nw, m_capacity, m_level + 1);
+		m_northeast = new QuadTreeObj(ne, m_capacity, m_level + 1);
+		m_southwest = new QuadTreeObj(sw, m_capacity, m_level + 1);
+		m_southeast = new QuadTreeObj(se, m_capacity, m_level + 1);
+	}
+
+	catch (std::bad_alloc & ba)
+
+	{
+		if (m_northwest)
+			delete m_northwest;
+		if (m_northeast)
+			delete m_northeast;
+		if (m_southwest)
+			delete m_southwest;
+		if (m_southeast)
+			delete m_southeast;
+	}
+	
 
 	for (int i = 0; i < points.size(); i++)
 
@@ -63,7 +81,7 @@ void QuadTreeObj::subDivide()
 void QuadTreeObj::insert(const Point& point)
 
 {
-	if (!m_boundary.contains(point) || m_level > 100)
+	if (!m_boundary.contains(point) || m_level > 50)
 		return;
 
 	if (!divided)
@@ -88,7 +106,7 @@ void QuadTreeObj::insert(const Point& point)
 void QuadTreeObj::query(std::vector<Point>& output, const Boundary& range)
 
 {
-	if (!m_boundary.intersects(range) || m_level > 100)
+	if (!m_boundary.intersects(range) || m_level > 50)
 		return;
 	else if (!divided)
 

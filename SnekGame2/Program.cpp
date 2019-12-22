@@ -149,15 +149,15 @@ void Program::gameCleanUp()
 void Program::draw()
 
 {
-	m_mtx.lock();
+	
 	for (int i = 0; i < m_entities.size(); i++)
 
 	{
-		
+		m_mtx.lock();
 		m_entities[i]->draw(window);
-		
+		m_mtx.unlock();
 	}
-	m_mtx.unlock();
+	
 }
 
 void Program::update()
@@ -165,20 +165,24 @@ void Program::update()
 {
 	getSteering();
 	m_tree.clear();
-	m_mtx.lock();
+	
 	for (int i = 0; i < m_entities.size(); i++)
 
 	{
+		m_mtx.lock();
  		m_entities[i]->preUpdate();
+		m_mtx.unlock();
 	}
-	m_mtx.unlock();
-	m_mtx.lock();
+	
+	
 	for (int i = 0; i < m_entities.size(); i++)
 
 	{
+		m_mtx.lock();
 		m_entities[i]->update();
+		m_mtx.unlock();
 	}
-	m_mtx.unlock();
+	
 }
 
 void Program::executeArguments(const std::string& line)
@@ -381,7 +385,14 @@ void Program::clearGhost(const std::string& id)
 
 {
 	short index = getGhostIndex(id);
-	(*m_ghosts)[index]->points.clear();
+	if (index != -1)
+
+	{
+		m_mtx.lock();
+		(*m_ghosts)[index]->points.clear();
+		m_mtx.unlock();
+	}
+		
 }
 
 void Program::eventHandlerLoop()

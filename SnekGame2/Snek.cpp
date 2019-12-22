@@ -114,7 +114,7 @@ void Snek::draw(sf::RenderWindow& window)
 			}
 		}
 
-		if (i == points.size() - 1 || i == 0 && points.size() > 0)
+		if ((i == points.size() - 1 || i == 0) && points.size() > 0)
 
 		{
 			circle.setRadius(points[i].m_radius);
