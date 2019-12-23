@@ -106,17 +106,83 @@ void Player::checkCollision()
 		if (distanceSquared(output[i].m_position, m_position) < radiusSqr)
 
 		{
-			switch (output[i].m_type)
+			if (output[i].m_type == Point::PointType::Snek)
+			
+			{
+				m_alive = false;
+				return;
+			}
+
+			else
 
 			{
-			case Point::PointType::Snek:
-				{
-					m_alive = false;
-					return;
-				}
+				foodEaten(output[i].m_type);
 			}
 		}
 	}
+}
+
+void Player::snekEventHandler()
+
+{
+	bool noEffects{ true };
+
+	if (m_effects[(unsigned int)Point::PointType::Slow])
+		checkSpeedSnek(Point::PointType::Slow), noEffects = false;
+	/*if (m_effects[Point::PointType::Fast])
+		checkSpeedSnek(Point::PointType::Fast), noEffects = false;
+	if (m_effects[Point::PointType::Reverse])
+		checkSpeedSnek(Point::PointType::Reverse), noEffects = false;*/
+
+	if (noEffects)
+	
+	{
+		resetSnek();
+	}
+
+}
+
+void Player::foodEaten(const Point::PointType type)
+
+{
+	switch (type)
+
+	{
+	case Point::PointType::Slow:
+		speedSnek(-0.2);
+		m_effects[(unsigned int)Point::PointType::Slow]++;
+		break;
+	}
+}
+
+void Player::speedSnek(float multiplier)
+
+{
+	speedFactor += multiplier;
+	speedClock.restart();
+}
+
+void Player::resetSnek()
+
+{
+	speedFactor = 1.0;
+}
+
+void Player::checkSpeedSnek(Point::PointType type)
+
+{
+	switch (type)
+
+	{
+	case Point::PointType::Slow:
+		if (speedClock.getElapsedTime().asSeconds() < speedEffectTime)
+
+		{
+			m_effects[(unsigned int)Point::PointType::Slow]--;
+			speedSnek(0.2);
+		}
+	}
+	
 }
 
 void Player::setSteering(const short& steering)
@@ -129,5 +195,5 @@ inline void Player::steer()
 
 {
 	m_velocity.rotateInPlace(m_steering * m_steerVelocity);
-	m_velocity.setMagnitude(2.0);
+	m_velocity.setMagnitude(m_speed*speedFactor);
 }

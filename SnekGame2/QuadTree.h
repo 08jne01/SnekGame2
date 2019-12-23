@@ -9,6 +9,7 @@ struct Point
 
 	{
 		Snek,
+		Slow
 	};
 
 	Point()
