@@ -148,6 +148,7 @@ void NetworkHandler::receiveTCP()
 				break;
 			case NPNT:
 				handleNewPointUDP(packetReceive);
+				break;
 			case DSCT:
 				handleDisconnectGhost(packetReceive);
 				break;

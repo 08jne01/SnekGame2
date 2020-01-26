@@ -119,6 +119,11 @@ void Player::checkCollision()
 	}
 }
 
+void Player::getObstacles(const float radius, std::vector<Point>& points)
+{
+	getTree()->query(points, Boundary(m_position, radius));
+}
+
 void Player::setSteering(const short& steering)
 
 {
@@ -129,5 +134,5 @@ inline void Player::steer()
 
 {
 	m_velocity.rotateInPlace(m_steering * m_steerVelocity);
-	m_velocity.setMagnitude(2.0);
+	m_velocity.setMagnitude(m_speed);
 }
