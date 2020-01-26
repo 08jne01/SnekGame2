@@ -122,6 +122,7 @@ void Player::checkCollision()
 	}
 }
 
+
 void Player::snekEventHandler()
 
 {
@@ -182,7 +183,11 @@ void Player::checkSpeedSnek(Point::PointType type)
 			speedSnek(0.2);
 		}
 	}
-	
+}
+
+void Player::getObstacles(const float radius, std::vector<Point>& points)
+{
+	getTree()->query(points, Boundary(m_position, radius));
 }
 
 void Player::setSteering(const short& steering)

@@ -22,6 +22,23 @@ public:
 	void speedSnek(float multiplier);
 	void checkSpeedSnek(Point::PointType type);
 	void reset();
+	inline Vec2f getPosition()
+	{
+		return m_position;
+	}
+	inline short getWidth()
+	{
+		return m_width;
+	}
+	inline short getHeight()
+	{
+		return m_height;
+	}
+	inline Vec2f getVelocity()
+	{
+		return m_velocity;
+	}
+	void getObstacles(const float radius, std::vector<Point>& points);
 	inline void steer();
 private:
 	Vec2f m_position, m_velocity, m_prevPosition, m_prevPositionIncludingHoles;

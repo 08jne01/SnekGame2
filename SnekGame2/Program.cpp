@@ -1,5 +1,5 @@
 #include "Program.h"
-
+#include "luaextern.h"
 Program::Program(
 	const short& width,
 	const short& height
@@ -74,6 +74,8 @@ int Program::mainLoopGame()
 	m_player->reset();
 	m_entities.push_back(m_player);
 
+	initLua(&player);
+
 	static std::vector<std::shared_ptr<Ghost>> ghosts;
 	m_ghosts = &ghosts;
 
@@ -127,7 +129,8 @@ int Program::mainLoopGame()
 		NetworkHandler::getInstance()->disconnect();
 		NetworkHandler::getInstance()->reset();
 	}
-		
+
+	closeLua();
 	m_eventHandlerThread.wait();
 	gameCleanUp();
 	return EXIT_SUCCESS;
@@ -142,7 +145,6 @@ void Program::gameCleanUp()
 	m_eventQueue.clear();
 	m_player->points.clear();
 	m_tree.clear();
-	
 	m_mtx.unlock();
 }
 
@@ -164,6 +166,7 @@ void Program::update()
 
 {
 	getSteering();
+	luaUpdate();
 	m_tree.clear();
 	
 	for (int i = 0; i < m_entities.size(); i++)

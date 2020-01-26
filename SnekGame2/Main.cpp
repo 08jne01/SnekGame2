@@ -1,5 +1,5 @@
 #include "Program.h"
-
+#include "luaextern.h"
 int main()
 
 {
