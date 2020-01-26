@@ -6,7 +6,7 @@ Program::Program(
 ) :
 	m_width(width),
 	m_height(height),
-	m_tree(Vec2f(width / 2.0, height / 2.0), width, height, 1),
+	m_tree(Vec2f(width / 2.0, height / 2.0), width, height, 10),
 	m_eventHandlerThread(&Program::eventHandlerLoop, this),
 	m_gameState(GameState::MENU),
 	m_ip("127.0.0.1"),
@@ -74,7 +74,8 @@ int Program::mainLoopGame()
 	m_player->reset();
 	m_entities.push_back(m_player);
 
-	initLua(&player);
+	if (loadLua)
+		initLua(&player);
 
 	static std::vector<std::shared_ptr<Ghost>> ghosts;
 	m_ghosts = &ghosts;
@@ -128,7 +129,8 @@ int Program::mainLoopGame()
 		NetworkHandler::getInstance()->reset();
 	}
 
-	closeLua();
+	if (loadLua)
+		closeLua();
 	m_eventHandlerThread.wait();
 	gameCleanUp();
 	return EXIT_SUCCESS;
@@ -164,7 +166,8 @@ void Program::update()
 
 {
 	getSteering();
-	luaUpdate();
+	if (loadLua)
+		luaUpdate();
 	m_tree.clear();
 	
 	for (int i = 0; i < m_entities.size(); i++)
@@ -243,7 +246,11 @@ void Program::parseArguments(const std::vector<std::string>& argv)
 			if (size != 3)
 
 			{
-				std::cout << "Please supply ip:port" << std::endl;
+				//std::cout << "Please supply ip:port" << std::endl;
+				std::cout << "Using default 127.0.0.1:5000" << std::endl;
+				m_gameState = GameState::MULTI;
+				m_ip = "127.0.0.1";
+				m_port = 5000;
 				return;
 			}
 
@@ -288,6 +295,12 @@ void Program::parseArguments(const std::vector<std::string>& argv)
 		std::cout << "launch <mode> (ip:port) - (singleplayer alias s or multiplayer alias m)" << std::endl;
 		std::cout << "quit - quits the program" << std::endl;
 		std::cout << "help - brings up this menu" << std::endl;
+	}
+	else if (argv[0] == "lua")
+	{
+		loadLua = loadLua ? false : true;
+		const char* message = loadLua ? "Lua set to load" : "Lua set not load";
+		std::cout << message << std::endl;
 	}
 	else
 		std::cout << "Unknown command -> help for possible commands" << std::endl;

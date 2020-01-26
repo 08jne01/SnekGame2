@@ -46,6 +46,7 @@ private:
 	std::vector<Entity*> m_entities;
 	const short m_width, m_height;
 	bool shouldQuit = false;
+	bool loadLua = false;
 	sf::Mutex m_mtx;
 	sf::Mutex m_mtxEvents;
 

@@ -77,8 +77,7 @@ function wallVector(x,y,width,height)
 	xSteer = minX-maxX
 	ySteer = minY-maxY
 	magSqr = math.pow(xSteer,2)+math.pow(ySteer,2)
-	print(magSqr)
-	if (magSqr > 50) then
+	if (magSqr > 1000) then
 		return xSteer, ySteer
 	else
 		return false, false
@@ -98,14 +97,17 @@ function getPoint(points, x, y)
 	index = 1
 	for i, point in ipairs(points) do
 		d = distance(x,y,point.x, point.y)
-		if (d < dist) then
+		if (d < dist and dot(x,y,point.x,point.y) > 0) then
 			dist = d
 			index = i
 		end
 	end
-	return points[i]
+	return points[index]
 end
-
+bias = -1
+count = 0
+behaviourCount = 0
+spiral = true
 function rayMarch(points, x, y, xVel, yVel)
 	if (points and notNilPoint(points[1])) then
 		r = 0
@@ -113,39 +115,90 @@ function rayMarch(points, x, y, xVel, yVel)
 		py = y
 		rdx, rdy = normalise(xVel,yVel)
 		while (r < 100) do
-			step = minDist(points,x,y)
-			if (step < 5) then
-				break
-			end
+			step = minDist(points,px,py)
 			px = px + rdx*step
 			py = py + rdy*step
 			r = r + step
+			if (step < 10) then
+				--print("Collision")
+				break
+			end
 		end
 
-		
-
+		if (r < 100) then
+			target = getPoint(points, x, y)
+			--print(target.x.." "..target.y)
+			if (target) then
+				--print("also "..target.x.." "..target.y)
+				diffX = target.x - x
+				diffY = target.y - y
+				return diffX, diffY
+			else
+				return false,false
+			end
+		else
+			return false,false
+		end
 	else
-		return 0
+		return false,false
 	end
 end
 
 function update()
+	count = count + 1
+	behaviourCount = behaviourCount + 1
+	if (behaviourCount > 600 or (behaviourCount > 300 and spiral == false)) then
+		behaviourCount = 0
+		if (spiral) then
+			bias = -bias
+			spiral = false
+		else
+			spiral = true
+		end
+	end
+	if (spiral ~= true) then
+		if (count > 120) then
+			count = 0
+			bias = -bias
+		end
+	end
+
 	x,y = snek.getPosition()
 	xV,yV = snek.getVelocity()
 	width = screen.getWidth()
 	height = screen.getHeight()
-	points = snek.getObstacles(100.0)
+	points = snek.getObstacles(200.0)
 
 	xSteer, ySteer = wallVector(x,y,width,height)
+	turn = 0
+	if (count % 20 == 0 or spiral) then
+		turn = bias
+	end
+	biasOn = true
 	if (xSteer and ySteer) then
 		angle = angleVectors(xSteer,ySteer, xV,yV)
-		--print(xSteer.." "..ySteer.." "..angle)
+		turn = 0
+		biasOn = false
 		if (angle > 0) then
-			snek.setTurn(-1)
+			turn = turn - 1
 		else
-			snek.setTurn(1)
+			turn = turn + 1
 		end
-	else
-		snek.setTurn(0)
 	end
+
+	diffX, diffY = rayMarch(points, x, y, xV, yV)
+	if (diffX and diffY) then
+		angle = angleVectors(diffX, diffY, xV, yV)
+		if (biasOn) then
+			turn = 0
+			biasOn = false
+		end
+		if (angle > 0) then
+			turn = turn + 1
+		else
+			turn = turn - 1
+		end
+	end
+
+	snek.setTurn(turn)
 end

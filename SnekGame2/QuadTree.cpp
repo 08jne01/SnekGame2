@@ -15,6 +15,7 @@ QuadTreeObj::QuadTreeObj(
 QuadTreeObj::~QuadTreeObj()
 
 {
+	points.clear();
 	if (m_northwest)
 		delete m_northwest;
 	if (m_northeast)
@@ -48,8 +49,19 @@ void QuadTreeObj::subDivide()
 	{
 		m_northwest = new QuadTreeObj(nw, m_capacity, m_level + 1);
 		m_northeast = new QuadTreeObj(ne, m_capacity, m_level + 1);
-		m_southwest = new QuadTreeObj(sw, m_capacity, m_level + 1);
+ 		m_southwest = new QuadTreeObj(sw, m_capacity, m_level + 1);
 		m_southeast = new QuadTreeObj(se, m_capacity, m_level + 1);
+
+		for (int i = 0; i < points.size(); i++)
+
+		{
+			m_northwest->insert(points[i]);
+			m_northeast->insert(points[i]);
+			m_southwest->insert(points[i]);
+			m_southeast->insert(points[i]);
+		}
+		points.clear();
+		divided = true;
 	}
 
 	catch (std::bad_alloc & ba)
@@ -64,24 +76,12 @@ void QuadTreeObj::subDivide()
 		if (m_southeast)
 			delete m_southeast;
 	}
-	
-
-	for (int i = 0; i < points.size(); i++)
-
-	{
-		m_northwest->insert(points[i]);
-		m_northeast->insert(points[i]);
-		m_southwest->insert(points[i]);
-		m_southeast->insert(points[i]);
-	}
-	points.clear();
-	divided = true;
 }
 
 void QuadTreeObj::insert(const Point& point)
 
 {
-	if (!m_boundary.contains(point) || m_level > 50)
+	if (!m_boundary.contains(point))
 		return;
 
 	if (!divided)
