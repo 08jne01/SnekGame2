@@ -64,7 +64,7 @@ private:
 
 	//Snek Attributes
 	bool m_noGaps = false;
-	float speedFactor;
+	float speedFactor = 1.0;
 	float speedEffectTime = 3.0;
 	unsigned int m_effects[3] = { 0,0,0 }; // snek, ..., ...
 

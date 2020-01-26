@@ -80,8 +80,6 @@ void Player::update()
 
 	m_distHoles += distance(m_position, m_prevPositionIncludingHoles);
 
-	if (m_distHoles)
-
 	m_prevPositionIncludingHoles = m_position;
 	m_drawPosition = m_position;
 }
@@ -112,7 +110,6 @@ void Player::checkCollision()
 				m_alive = false;
 				return;
 			}
-
 			else
 
 			{

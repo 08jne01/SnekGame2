@@ -99,8 +99,6 @@ int Program::mainLoopGame()
 			
 	}
 		
-
-
 	m_eventHandlerThread.launch();
 	sf::sleep(sf::seconds(1));
 	window.requestFocus();
