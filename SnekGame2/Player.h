@@ -15,7 +15,12 @@ public:
 	Player(const Vec2f& position, QuadTree* tree, short width, short height);
 	void setSteering(const short& steering);
 	void update();
+	void snekEventHandler();
 	void checkCollision();
+	void foodEaten(const Point::PointType type);
+	void resetSnek();
+	void speedSnek(float multiplier);
+	void checkSpeedSnek(Point::PointType type);
 	void reset();
 	inline Vec2f getPosition()
 	{
@@ -45,6 +50,7 @@ private:
 	float m_randomTime = 0.0;
 	sf::Clock m_spacer;
 	sf::Clock frameTime;
+
 	//Constant config values
 	const float m_steerVelocity = 0.08;
 	const float m_speed = 2.0;
@@ -58,6 +64,13 @@ private:
 
 	//Snek Attributes
 	bool m_noGaps = false;
+	float speedFactor;
+	float speedEffectTime = 3.0;
+	unsigned int m_effects[3] = { 0,0,0 }; // snek, ..., ...
+
+	//effects clocks
+	sf::Clock speedClock;
+
 
 	//Random Number gen
 	std::mt19937 generator;
